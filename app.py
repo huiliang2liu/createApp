@@ -301,12 +301,12 @@ def clear(dr):
 def create_gradle(dr):
     with open(os.path.join(dr, 'build.gradle'), 'w') as f:
         f.write('plugins{\n\tid "com.android.library"\n}\n')
-        f.write('android{\n\tcompileSdk:%s\n\tdefaultConfig{\n\t\tminSdk:%s\n\t\ttargetSdk:%s\n\t}\n}' % (
+        f.write('android{\n\tcompileSdk %s\n\tdefaultConfig{\n\t\tminSdk %s\n\t\ttargetSdk %s\n\t}\n}' % (
             json['compileSdk'], json['minSdk'], json['targetSdk']))
         f.write('\ndependencies{\n')
         if 'implementations' in json:
             for implementation in json['implementations']:
-                f.write('\timplementation:"%s"\n' % implementation)
+                f.write('\timplementation "%s"\n' % implementation)
         f.write('}')
 
 
