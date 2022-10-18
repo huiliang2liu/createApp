@@ -232,7 +232,7 @@ def create_other(dr):
         while ss in acs:
             ss = next_string()
         ss = ss.capitalize()
-        create_other_java(os.path.join(dr, '%s.java' % ss), ss[:-7])
+        create_other_java(os.path.join(dr, '%s.java' % ss), ss)
 
 
 def create_other_java(dr, name):
