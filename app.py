@@ -2,22 +2,9 @@
 import sys
 import os
 import random
+import json as js
 
 json = {
-    'compileSdk': 32,
-    'minSdk': 21,
-    'targetSdk': 32,
-    'implementations': ['androidx.appcompat:appcompat:1.4.1', 'com.google.android.material:material:1.4.0'],
-    'package': 'com.aa.test',
-    'permission': ['android.permission.READ_PRIVILEGED_PHONE_STATE'],
-    'packageCount': 30,
-    'activityCount': 3,
-    'serverCount': 2,
-    'otherCount': 10,
-    'methodCount': 20,
-    'fieldCount': 10,
-    'colorCount': 10,
-    'stringCount': 10
 }
 
 word_table = []
@@ -429,6 +416,8 @@ def init_field():
 if __name__ == '__main__':
     app = sys.argv[1]
     print("项目输出地址:%s" % app)
+    with open('config.json', 'r') as f:
+        json = js.load(f)
     init_word()
     init_field()
     if not os.path.exists(app):
