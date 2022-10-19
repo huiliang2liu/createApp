@@ -14,11 +14,23 @@ json = {
     'activityCount': 3,
     'serverCount': 2,
     'otherCount': 10,
-    'methodCount': 20
+    'methodCount': 20,
+    'fieldCount': 10,
+    'colorCount': 10,
+    'stringCount': 10
 }
 
-table = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-         'w', 'x', 'y', 'z']
+word_table = []
+
+fields = []
+
+key = ['private', 'protected', 'public', 'default', 'abstract', 'class', 'extends',
+       'final', 'implements', 'interface', 'native', 'new', 'static', 'strictfp',
+       'synchronized', 'transient', 'volatile', 'break', 'case', 'continue', 'do',
+       'else', 'for', 'if', 'instanceof', 'return', 'switch', 'while', 'assert', 'catch',
+       'finally', 'throw', 'throws', 'try', 'import', 'package', 'boolean', 'byte',
+       'char', 'double', 'float', 'int', 'long', 'short', 'super', 'this', 'void',
+       'goto', 'const', 'Activity', 'Service']
 
 methods = [
     '''
@@ -98,15 +110,70 @@ def create_app(dr):
     dr = os.path.join(dr, 'main')
     os.mkdir(dr)
     create_packages(dr)
-    create_layout(dr)
+    create_res(dr)
     create_main(dr)
+
+
+def create_res(dr):
+    dr = os.path.join(dr, 'res')
+    os.mkdir(dr)
+    create_layout(dr)
+    create_values(dr)
+
+
+def create_values(dr):
+    dr = os.path.join(dr, 'values')
+    os.mkdir(dr)
+    create_color(dr)
+    create_string(dr)
+
+
+color_table = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+
+
+def create_color_():
+    ss = color_table[random.randint(0, len(color_table) - 1)]
+    for i in range(7):
+        ss = ss + color_table[random.randint(0, len(color_table) - 1)]
+    return ss
+
+
+def create_color(dr):
+    if 'colorCount' not in json:
+        return
+    with open(os.path.join(dr, 'colors.xml'), 'w') as f:
+        f.write('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n')
+        colors = []
+        for i in range(json['colorCount']):
+            ss = next_string()
+            while ss in colors:
+                ss = next_string()
+            colors.append(ss)
+            ss = name_to_layout(ss)
+            f.write('<color name="%s">#%s</color>\n' % (ss, create_color_()))
+        f.write('</resources>')
+    pass
+
+
+def create_string(dr):
+    if 'stringCount' not in json:
+        return
+    with open(os.path.join(dr, 'strings.xml'), 'w') as f:
+        f.write('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n')
+        strings = []
+        for i in range(json['stringCount']):
+            ss = next_string()
+            while ss in strings:
+                ss = next_string()
+            strings.append(ss)
+            ss = name_to_layout(ss)
+            f.write('<string name="%s">%s</string>\n' % (ss, ss.replace('_', ' ')))
+        f.write('</resources>')
 
 
 def create_layout(dr):
     if len(layouts) <= 0:
         return
-    dr = os.path.join(dr, 'res')
-    os.mkdir(dr)
     dr = os.path.join(dr, 'layout')
     os.mkdir(dr)
     for layout in layouts:
@@ -123,8 +190,9 @@ def create_packages(dr):
         os.mkdir(dr)
     for i in range(json['packageCount']):
         ss = next_string()
-        while ss in packages:
+        while ss in packages or ss in key:
             ss = next_string()
+        ss = str(ss).lower()
         packages.append(ss)
         create_java(os.path.join(dr, ss))
 
@@ -143,15 +211,27 @@ def create_activity(dr):
     acs = []
     for i in range(json['activityCount']):
         ss = next_string()
-        while ss in acs:
+        while ss in acs or ss in key:
             ss = next_string()
-        layouts.append('activity_%s' % ss.lower())
-        ss = ss.capitalize()
-        ss = ss + 'Activity'
+        ss = str(ss[0:1]).upper() + ss[1:]
+        if not str(ss).endswith('Activity'):
+            ss = ss + 'Activity'
         create_activity_java(os.path.join(dr, '%s.java' % ss), ss[:-8])
 
 
+def name_to_layout(name):
+    ss = str(name[0:1]).lower()
+    for i in name[1:]:
+        if str(i).upper() == i:
+            ss = ss + '_' + str(i).lower()
+        else:
+            ss = ss + i
+    return ss
+
+
 def create_activity_java(dr, name):
+    layout_name = name_to_layout(name)
+    layouts.append('activity_%s' % layout_name)
     with open(dr, 'w') as f:
         package_name = dr.split('java/')[1]
         package_name = package_name[:package_name.rindex('/')]
@@ -167,13 +247,15 @@ import androidx.annotation.Nullable;
 import %s.R;
 
 
-public class %sActivity extends Activity {
+public class %sActivity extends Activity {''' % (package_name, json['package'], name))
+        add_field(f)
+        f.write('''    
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_%s);
     }
-        ''' % (package_name, json['package'], name, name.lower()))
+            ''' % (layout_name))
         add_method(f)
         f.write('}\n')
     pass
@@ -185,10 +267,11 @@ def create_server(dr):
     acs = []
     for i in range(json['serverCount']):
         ss = next_string()
-        while ss in acs:
+        while ss in acs and ss in key:
             ss = next_string()
-        ss = ss.capitalize()
-        ss = ss + 'Service'
+        ss = str(ss[0:1]).upper() + ss[1:]
+        if not str(ss).endswith('Service'):
+            ss = ss + 'Service'
         create_server_java(os.path.join(dr, '%s.java' % ss), ss[:-7])
 
 
@@ -206,7 +289,9 @@ import android.os.IBinder;
 
 import androidx.annotation.Nullable;
 
-public class %sService extends Service {
+public class %sService extends Service {''' % (package_name, name))
+        add_field(f)
+        f.write('''
     @Override
     public void onCreate() {
         super.onCreate();
@@ -217,7 +302,7 @@ public class %sService extends Service {
     public IBinder onBind(Intent intent) {
         return null;
     }
-        ''' % (package_name, name))
+        ''')
         add_method(f)
         f.write('}\n')
 
@@ -229,9 +314,9 @@ def create_other(dr):
     acs = []
     for i in range(json['otherCount']):
         ss = next_string()
-        while ss in acs:
+        while ss in acs and ss in key:
             ss = next_string()
-        ss = ss.capitalize()
+        ss = str(ss[0:1]).upper() + ss[1:]
         create_other_java(os.path.join(dr, '%s.java' % ss), ss)
 
 
@@ -242,6 +327,7 @@ def create_other_java(dr, name):
         package_name = '.'.join(package_name.split('/'))
         f.write('package %s;\n\n' % package_name)
         f.write('public class %s{\n' % name)
+        add_field(f)
         add_method(f)
         f.write('}\n')
 
@@ -252,19 +338,37 @@ def add_method(f):
     meths = []
     for i in range(json['methodCount']):
         ss = next_string()
-        while ss in meths:
+        while ss in meths and ss in key:
             ss = next_string()
+        meths.append(ss)
         meth = methods[random.randint(0, len(methods) - 1)]
         f.write(meth % ss)
         f.write('\n')
 
 
+def add_field(f):
+    if 'fieldCount' not in json:
+        return
+    fiels = []
+    for i in range(json['fieldCount']):
+        ss = next_string()
+        while ss in fiels and ss in key:
+            ss = next_string()
+        fiels.append(ss)
+        meth = fields[random.randint(0, len(fields) - 1)]
+        f.write('\n\tprivate %s %s;' % (meth, ss))
+        f.write('\n')
+
+
 def next_string():
-    length = random.randint(1, 20)
-    ss = ''
-    for i in range(length):
-        index = random.randint(0, len(table) - 1)
-        ss = ss + table[index]
+    length = random.randint(1, 3)
+    index = random.randint(0, len(word_table) - 1)
+    ss = word_table[index]
+    if length < 2:
+        return ss
+    for i in range(length - 1):
+        index = random.randint(0, len(word_table) - 1)
+        ss = ss + str(word_table[index]).capitalize()
     return ss
 
 
@@ -310,9 +414,23 @@ def create_gradle(dr):
         f.write('}')
 
 
+def init_word():
+    with open('words', 'r') as f:
+        for line in f.readlines():
+            word_table.append(line.replace('\n', ''))
+
+
+def init_field():
+    with open('fields', 'r') as f:
+        for line in f.readlines():
+            fields.append(line.replace('\n', ''))
+
+
 if __name__ == '__main__':
     app = sys.argv[1]
     print("项目输出地址:%s" % app)
+    init_word()
+    init_field()
     if not os.path.exists(app):
         os.makedirs(app)
     else:
