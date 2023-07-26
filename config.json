@@ -6,16 +6,16 @@
     "androidx.appcompat:appcompat:1.4.1",
     "com.google.android.material:material:1.4.0"
   ],
-  "package": "com.aa.test",
+  "package": "com.baiwuyu.qingmeng.film",
   "permission": [
     "android.permission.READ_PRIVILEGED_PHONE_STATE"
   ],
-  "packageCount": 30,
-  "activityCount": 3,
-  "serverCount": 2,
-  "otherCount": 10,
+  "colorCount": 10,
+  "stringCount": 10,
+  "packageCount": 10,
   "methodCount": 20,
   "fieldCount": 10,
-  "colorCount": 20,
-  "stringCount": 20
+  "otherCount": 10,
+  "activityCount": 10,
+  "serverCount": 10
 }
